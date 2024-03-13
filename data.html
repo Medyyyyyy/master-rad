@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vremenski Podaci</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+    />
+    <style>
+      .wrapper {
+        font-family: "Roboto";
+        background-image: url("/POZADINA3.jpg"); /* Postavite putanju do slike */
+        background-size: cover; /* Da bi slika popunila cijeli ekran */
+        background-repeat: no-repeat; /* Spriječava ponavljanje slike */
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: space-between;
+      }
+      #chart-container {
+        width: 85%;
+        margin: 20px;
+        background-color: #f2f3f4;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        height: 400px;
+        margin-bottom: 20px;
+      }
+      #measurement-table {
+        width: 10%;
+        margin: 20px;
+        background-color: #f2f3f4;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+
+      #measurements tbody tr {
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      #measurements tbody tr:hover {
+        background-color: #aed6f1;
+      }
+
+      .measurement-details-container {
+        background-color: #f2f3f4;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        margin-top: 40px;
+      }
+
+      .measurement-details-container h3 {
+        color: #333;
+        margin-bottom: 10px;
+      }
+
+      .measurement-details-container table {
+        width: 100%;
+      }
+
+      .measurement-details-container td {
+        padding: 8px;
+      }
+
+      .measurement-details-container tr:nth-child(even) {
+        background-color: #fdfefe;
+      }
+
+      .measurement-details-container tr:hover {
+        background-color: #aed6f1;
+      }
+
+      @media only screen and (max-width: 768px) {
+        body {
+          flex-direction: column;
+        }
+        #chart-container,
+        #measurement-table {
+          width: 100%;
+          margin: 20px 0;
+        }
+      }
+
+      @media only screen and (min-width: 768px) {
+        #chart-container {
+          width: 65%;
+          margin: 20px;
+        }
+        #measurement-table {
+          width: 30%;
+          margin: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <input type="number" id="numberOfPoints" onchange="myChart.destroy(); myChart=null; loadData()">
+   <div class="wrapper">
+    <div id="measurement-table">
+      <h2>Mjerenja</h2>
+      <table id="measurements">
+        <thead>
+          <tr>
+            <th>Vrijeme</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Ovdje će se dinamički dodavati nova mjerenja -->
+        </tbody>
+      </table>
+    </div>
+    <div id="chart-container">
+      <canvas id="line-chart"></canvas>
+      <div id="measurement-details" style="display: none">
+        <!-- Ovdje će se prikazivati detaljni podaci o mjerenju -->
+      </div>
+    </div>
+
+    <div id="error-message" style="display: none">
+      Greška prilikom učitavanja podataka.
+    </div>
+   </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.1/socket.io.js"></script>
+    <script>
+      var myChart = null;
+      async function drawChartAndTable(podaci) {
+        try {
+          var userInput = parseInt(document.getElementById('numberOfPoints').value);
+          const maxPoints =  isNaN(userInput) ? 20 : userInput;
+          console.log(maxPoints);
+          const latestData = podaci.slice(-maxPoints);
+
+          const labels = latestData.map((entry) => entry.Vrijeme);
+          const temperatureData = latestData.map((entry) => entry.Temperatura);
+          const suncevoZracenjeData = latestData.map(
+            (entry) => entry.Procijenjeno_suncevo_zracenje
+          );
+
+          const ctx = document.getElementById("line-chart").getContext("2d");
+          myChart = new Chart(ctx, {
+            type: "line",
+            data: {
+              labels: labels,
+              datasets: [
+                {
+                  label: "Temperatura",
+                  borderColor: "blue",
+                  data: temperatureData,
+                },
+                {
+                  label: "Sunčevo zračenje",
+                  borderColor: "lightblue",
+                  data: suncevoZracenjeData,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+            },
+          });
+
+          const tableBody = document.querySelector("#measurements tbody");
+          tableBody.innerHTML = "";
+          podaci.forEach((entry) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `<td>${entry.Vrijeme}</td>`;
+            row.addEventListener("click", () => showMeasurementDetails(entry));
+            tableBody.appendChild(row);
+          });
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
+      function showMeasurementDetails(entry) {
+        const detailsDiv = document.getElementById("measurement-details");
+        detailsDiv.innerHTML = "";
+        // Stvaranje elementa div za stilizaciju i prikaz detalja
+        const detailsContainer = document.createElement("div");
+        detailsContainer.classList.add("measurement-details-container");
+
+        // Stvaranje naslova
+        const title = document.createElement("h3");
+        title.textContent = "Detalji mjerenja";
+        detailsContainer.appendChild(title);
+
+        // Stvaranje tablice za prikaz detalja
+        const detailsTable = document.createElement("table");
+        for (const [key, value] of Object.entries(entry)) {
+          const row = document.createElement("tr");
+          const keyCell = document.createElement("td");
+          const valueCell = document.createElement("td");
+          keyCell.textContent = key;
+          valueCell.textContent = value;
+          row.appendChild(keyCell);
+          row.appendChild(valueCell);
+          detailsTable.appendChild(row);
+        }
+        detailsContainer.appendChild(detailsTable);
+
+        // Dodavanje detalja u div
+        detailsDiv.appendChild(detailsContainer);
+        detailsDiv.style.display = "block";
+      }
+      var loadData = function(){
+      
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+        const csvSelect = urlParams.get("csvSelect");
+
+        fetch(`http://localhost:3001/podaci?csvSelect=${csvSelect}`)
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Početni podaci učitani");
+            drawChartAndTable(data);
+          })
+          .catch((error) => {
+            console.error(
+              "Greška prilikom učitavanja početnih podataka:",
+              error
+            );
+            document.getElementById("error-message").style.display = "block";
+          });
+      }
+      document.addEventListener("DOMContentLoaded", loadData);
+      document.addEventListener("DOMContentLoaded", () => {
+        const tableRows = document.querySelectorAll("#measurements tbody tr");
+
+        tableRows.forEach((row) => {
+          row.addEventListener("click", () => {
+            // Pozovemo funkciju za prikaz detalja mjerenja
+            const entry = JSON.parse(row.getAttribute("data-entry"));
+            showMeasurementDetails(entry);
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,114 @@
+import requests
+from datetime import datetime, timedelta
+import time
+import csv
+
+def get_energy_data(api_key, city='Sarajevo', country='BA'):
+    api_url = 'https://api.weatherbit.io/v2.0/current'
+
+    current_datetime = datetime.now()
+    current_day_start = datetime(current_datetime.year, current_datetime.month, current_datetime.day, 0, 0, 0)
+
+    params = {
+        'city': city,
+        'country': country,
+        'key': api_key,
+        #'lang': 'bs', ispisivalo mi je error
+    }
+
+    try:
+        response = requests.get(api_url, params=params)
+
+        if response.status_code == 200:
+            data = response.json()
+
+            # Otvori CSV fajl za pisanje
+            with open('energy_data_zadnja_verzija.csv', mode='a', newline='') as csv_file:
+                fieldnames = ['Time'] + list(data['data'][0].keys())
+                writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+
+                 # Ako je fajl prazan, napiši zaglavlje
+                if csv_file.tell() == 0:
+                    writer.writeheader()
+
+                # Ažuriraj trenutno vrijeme
+                current_datetime = datetime.now()
+
+                # Provjeri da li se promjenio datum
+                if current_datetime.date() != current_day_start.date():
+                    print(f"Novi dan! ")
+                    # Update current_day_start
+                    current_day_start = datetime(current_datetime.year, current_datetime.month, current_datetime.day, 0, 0, 0)
+
+                for entry in data['data']:
+                    # Dinamičko postavljanje vremena na trenutno vrijeme
+                    time_str = datetime.now().strftime('%H:%M:%S')
+                    entry['Time'] = time_str
+                     # Dodaje red u CSV fajl
+                    writer.writerow(entry)
+
+                    # Printa poruku prije svakog mjerenja
+                    print(f"Mjerenje za {datetime.now().date()} u {datetime.now().strftime('%H:%M:%S')}.")
+
+                   # Isprintaj sve parametre za svaku opservaciju
+                    print(f"Broj opservacija: {entry.get('count')}")
+                    print(f"Geografska sirina: {entry.get('lat')}")
+                    print(f"Geografska duzina: {entry.get('lon')}")
+                    print(f"Vrijeme izlaska sunca (UTC): {entry.get('sunrise')}")
+                    print(f"Vrijeme zalaska sunca (UTC): {entry.get('sunset')}")
+                    print(f"Vremenska zona: {entry.get('timezone')}")
+                    print(f"ID stanice (zastarijelo): {entry.get('station')}")
+                    print(f"Izvori podataka: {entry.get('sources')}")
+                    print(f"Vrijeme posljednje opservacije: {entry.get('ob_time')}")
+                    print(f"Posljednji vremenski ciklus (zastarijelo): {entry.get('datetime')}")
+                    print(f"Vrijeme opservacije (Unix timestamp): {entry.get('ts')}")
+                    print(f"Naziv grada: {entry.get('city_name')}")
+                    print(f"Kod zemlje: {entry.get('country_code')}")
+                    print(f"Kod drzave: {entry.get('state_code')}")
+                    print(f"Pritisak: {entry.get('pres')} mb")
+                    print(f"Pritisak na nivou mora: {entry.get('slp')} mb")
+                    print(f"Brzina vjetra: {entry.get('wind_spd')} m/s")
+                    print(f"Brzina vjetra (naleti): {entry.get('gust')} m/s")
+                    print(f"Smijer vetra: {entry.get('wind_dir')} stepeni")
+                    print(f"Kratki opis smijera vjetra: {entry.get('wind_cdir')}")
+                    print(f"Puni opis smijera vjetra: {entry.get('wind_cdir_full')}")
+                    print(f"Temperatura: {entry.get('temp')} °C")
+                    print(f"Aparentna temperatura: {entry.get('app_temp')} °C")
+                    print(f"Relativna vlaznost: {entry.get('rh')} %")
+                    print(f"Tacka rose: {entry.get('dewpt')} °C")
+                    print(f"Oblacnost: {entry.get('clouds')} %")
+                    print(f"Dio dana: {entry.get('pod')} (d = dan / n = noć)")
+                    print("Vremenski uslovi:")
+                    print(f"   Ikona: {entry['weather'].get('icon')}")
+                    print(f"   Kod: {entry['weather'].get('code')}")
+                    print(f"   Opis: {entry['weather'].get('description')}")
+                    print(f"Vidljivost: {entry.get('vis')} km")
+                    print(f"Padavine: {entry.get('precip')} mm/h")
+                    print(f"Snijeg: {entry.get('snow')} mm/h")
+                    print(f"UV indeks: {entry.get('uv')}")
+                    print(f"Indeks kvaliteta vazduha (AQI): {entry.get('aqi')}")
+                    print(f"Difuzno horizontalno suncevo zracenje: {entry.get('dhi')} W/m^2")
+                    print(f"Direktno normalno sunčevo zracenje: {entry.get('dni')} W/m^2")
+                    print(f"Globalno horizontalno sunčevo zracenje: {entry.get('ghi')} W/m^2")
+                    print(f"Procenjeno suncevo zracenje: {entry.get('solar_rad')} W/m^2")
+                    print(f"Solarni elevacioni ugao: {entry.get('elev_angle')} stepeni")
+                    print(f"Solarni satni ugao (zastarjelo): {entry.get('h_angle')} stepeni")
+
+                    print("\n" + "-"*40 + "\n")
+
+        else:
+            print(f'Error {response.status_code}: {response.text}')
+
+    except Exception as e:
+        print(f'Error: {e}')
+
+def parse_datetime(dt_str):
+    try:
+        return datetime.strptime(dt_str, '%Y-%m-%d %H:%M:%S')
+    except ValueError:
+        return datetime.min
+
+# Postavljanje periodičnog zadatka
+while True:
+    get_energy_data(api_key='abd79c512df344da80c500911fd874fe')
+    time.sleep(900)  # Pauza od 900 sekundi (15 minuta) prije sljedećeg poziva

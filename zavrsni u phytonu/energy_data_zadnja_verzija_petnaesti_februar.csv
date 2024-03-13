@@ -1,0 +1,4 @@
+Datum i vrijeme,Vrijeme,Naziv grada,Izlazak sunca (UTC),Zalazak sunca (UTC),Dio dana (d = dan / n = noc),Difuzno horizontalno suncevo zracenje (W/m^2),Direktno normalno suncevo zracenje (W/m^2),Globalno horizontalno suncevo zracenje (W/m^2),Procijenjeno suncevo zracenje (W/m^2),Solarni elevacioni ugao (stepeni),Solarni satni ugao (stepeni),UV indeks,Temperatura (°C),Aparentna temperatura (°C),Relativna vlaznost (%),Temperatura rose (°C),Oblacnost (%),Vidljivost (km),Padavine (mm/h),Snijeg (mm/h),Pritisak (mb),Brzina vjetra (m/s),Smjer vjetra (stepeni)
+2024-02-15:19,20:45:47,Sarajevo,05:44,16:17,n,0,0,0,0,-30.11,-90,0,3,3.9,93,2,46,16,0,0,961.3,0.5,0
+2024-02-15:20,21:25:36,Sarajevo,05:44,16:17,n,0,0,0,0,-40.37,-90,0,2,1.4,100,2,47,16,0,0,961.1,1,300
+2024-02-15:23,00:26:43,Sarajevo,05:44,16:17,n,0,0,0,0,-58.79,-90,0,0,0.7,100,0,50,16,0,0,960.7,0.5,180
