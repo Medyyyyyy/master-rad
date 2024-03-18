@@ -152,12 +152,12 @@
               datasets: [
                 {
                   label: "Temperatura",
-                  borderColor: "blue",
+                  borderColor: "Aqua",
                   data: temperatureData,
                 },
                 {
                   label: "Sunčevo zračenje",
-                  borderColor: "lightblue",
+                  borderColor: "DarkOrange",
                   data: suncevoZracenjeData,
                 },
               ],
@@ -195,12 +195,42 @@
 
         // Stvaranje tablice za prikaz detalja
         const detailsTable = document.createElement("table");
-        for (const [key, value] of Object.entries(entry)) {
+
+
+        // Ručno definirani nazivi redova
+        const rowTitles = {
+          "Datum i vrijeme": "Datum i vrijeme",
+          "Vrijeme": "Vrijeme",
+          "Naziv grada": "Naziv grada",
+          "Izlazak sunca (UTC)": "Izlazak sunca (UTC)",
+          "Zalazak sunca (UTC)": "Zalazak sunca (UTC)",
+          "Dio dana (d = dan / n = noc)": "Dio dana (d = dan / n = noć)",
+          "Difuzno horizontalno suncevo zracenje (W/m^2)": "Difuzno horizontalno sunčevo zračenje (W/m²)",
+          "Direktno normalno suncevo zracenje (W/m^2)": "Direktno normalno sunčevo zračenje (W/m²)",
+          "Globalno horizontalno suncevo zracenje (W/m^2)": "Globalno horizontalno sunčevo zračenje (W/m²)",
+          "Procijenjeno_suncevo_zracenje": "Procijenjeno sunčevo zračenje",
+          "Solarni elevacioni ugao (stepeni)": "Solarni elevacioni ugao (stepeni)",
+          "Solarni satni ugao (stepeni)": "Solarni satni ugao (stepeni)",
+          "UV indeks": "UV indeks",
+          "Temperatura": "Temperatura",
+          "Aparentna temperatura (°C)": "Aparentna temperatura (°C)",
+          "Relativna vlaznost (%)": "Relativna vlažnost (%)",
+          "Temperatura rose (°C)": "Temperatura rose (°C)",
+          "Oblacnost (%)": "Oblačnost (%)",
+          "Vidljivost (km)": "Vidljivost (km)",
+          "Padavine (mm/h)": "Padavine (mm/h)",
+          "Snijeg (mm/h)": "Snijeg (mm/h)",
+          "Pritisak (mb)": "Pritisak (mb)",
+          "Brzina vjetra (m/s)": "Brzina vjetra (m/s)",
+          "Smjer vjetra (stepeni)": "Smjer vjetra (stepeni)",
+        };
+
+        for (const [key, title] of Object.entries(rowTitles)) {
           const row = document.createElement("tr");
           const keyCell = document.createElement("td");
           const valueCell = document.createElement("td");
-          keyCell.textContent = key;
-          valueCell.textContent = value;
+          keyCell.textContent = title;
+          valueCell.textContent = entry[key];
           row.appendChild(keyCell);
           row.appendChild(valueCell);
           detailsTable.appendChild(row);
