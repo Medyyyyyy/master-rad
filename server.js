@@ -33,7 +33,7 @@ function loadCSVData() {
         });
 
         data2 = []; // Resetujemo niz podataka
-        fs.createReadStream('podaci2.csv')
+        fs.createReadStream('podaci1.csv')
             .pipe(csv())
             .on('data', (row) => {
                 data2.push(row);
@@ -46,6 +46,38 @@ function loadCSVData() {
             .on('error', (error) => {
                 console.error('Greška prilikom učitavanja podataka:', error.message);
             });
+
+
+            data3 = []; // Resetujemo niz podataka
+            fs.createReadStream('podaci_za_ljubuski.csv')
+                .pipe(csv())
+                .on('data', (row) => {
+                    data3.push(row);
+                })
+                .on('end', () => {
+                    console.log('Podaci seta 3 učitani');
+                    // Emitujemo novi niz podataka kada se podaci ažuriraju
+                    io.emit('podaciAzurirani', data3);
+                })
+                .on('error', (error) => {
+                    console.error('Greška prilikom učitavanja podataka:', error.message);
+                });
+
+
+                data4 = []; // Resetujemo niz podataka
+                fs.createReadStream('podaci2.csv')
+                    .pipe(csv())
+                    .on('data', (row) => {
+                        data4.push(row);
+                    })
+                    .on('end', () => {
+                        console.log('Podaci seta 4 učitani');
+                        // Emitujemo novi niz podataka kada se podaci ažuriraju
+                        io.emit('podaciAzurirani', data4);
+                    })
+                    .on('error', (error) => {
+                        console.error('Greška prilikom učitavanja podataka:', error.message);
+                    });
 }
 
 // Socket.io za emitovanje podataka klijentskoj strani
@@ -63,6 +95,10 @@ app.get('/podaci', (req, res) => {
         res.json(data1);
     } else if (csvSelect === '2') {
         res.json(data2);
+    } else if (csvSelect === '3') {
+        res.json(data3);
+    } else if (csvSelect === '4') {
+        res.json(data4);
     } else {
         res.status(400).json({ error: 'Invalid csvSelect value' });
     }
@@ -100,6 +136,15 @@ fs.watch('podaci2.csv', (eventType, filename) => {
         loadCSVData();
     }
 });
+
+fs.watch('podaci_za_ljubuski.csv', (eventType, filename) => {
+    if (eventType === 'change') {
+        console.log(`Fajl ${filename} je ažuriran`);
+        // Učitaj nove podatke iz CSV fajla
+        loadCSVData();
+    }
+});
+
 
 // Pozivamo funkciju za učitavanje podataka kada se server pokrene
 loadCSVData();
