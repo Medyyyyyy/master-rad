@@ -65,7 +65,7 @@ function loadCSVData() {
 
 
                 data4 = []; // Resetujemo niz podataka
-                fs.createReadStream('podaci2.csv')
+                fs.createReadStream('podaci_za_grude.csv')
                     .pipe(csv())
                     .on('data', (row) => {
                         data4.push(row);
@@ -138,6 +138,14 @@ fs.watch('podaci2.csv', (eventType, filename) => {
 });
 
 fs.watch('podaci_za_ljubuski.csv', (eventType, filename) => {
+    if (eventType === 'change') {
+        console.log(`Fajl ${filename} je ažuriran`);
+        // Učitaj nove podatke iz CSV fajla
+        loadCSVData();
+    }
+});
+
+fs.watch('podaci_za_grude.csv', (eventType, filename) => {
     if (eventType === 'change') {
         console.log(`Fajl ${filename} je ažuriran`);
         // Učitaj nove podatke iz CSV fajla
